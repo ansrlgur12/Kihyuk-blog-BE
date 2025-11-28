@@ -104,7 +104,9 @@ export class AuthController {
     res.cookie('refreshToken', token.refreshToken, {
       httpOnly: true,
       secure: true,
-      sameSite: 'strict',
+      // sameSite: 'strict',
+      sameSite: 'none',  // 크로스 도메인 쿠키 전송을 위해 필요
+
       maxAge: 7 * 24 * 60 * 60 * 1000,
     })
 
