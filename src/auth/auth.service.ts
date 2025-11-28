@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, Inject, NotFoundException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Inject, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
@@ -18,32 +18,41 @@ export class AuthService {
 
     async register(registerDto: RegisterDto) {
 
-        const existingUser = await this.prisma.user.findUnique({
-            where: {
-                user_email: registerDto.user_email,
-            }
-        });
+        try {
+            const existingUser = await this.prisma.user.findUnique({
+                where: {
+                    user_email: registerDto.user_email,
+                }
+            });
 
-        if (existingUser) {
-            throw new UnauthorizedException('이미 존재하는 이메일입니다.');
+            if (existingUser) {
+                throw new UnauthorizedException('이미 존재하는 이메일입니다.');
+            }
+
+            // 비밀번호 암호화 (bcrypt)
+            const hashedPassword = await bcrypt.hash(registerDto.user_password, 10);
+
+            const user =await this.prisma.user.create({
+                data: {
+                    user_email: registerDto.user_email,
+                    user_password: hashedPassword,
+                    user_nickname: registerDto.user_nickname,
+                },
+            })
+
+            if (!user) {
+                throw new InternalServerErrorException('회원가입 중 오류가 발생했습니다.');
+            }
+
+            return {
+                success: true,
+                message: '회원가입이 완료되었습니다.',
+            };
+        } catch (error) {
+            throw new InternalServerErrorException('회원가입 중 오류가 발생했습니다.');
         }
 
-        // 비밀번호 암호화 (bcrypt)
-        const hashedPassword = await bcrypt.hash(registerDto.user_password, 10);
 
-        const user = await this.prisma.user.create({
-            data: {
-                user_email: registerDto.user_email,
-                user_password: hashedPassword,
-                user_nickname: registerDto.user_nickname,
-            },
-        })
-
-        const { user_password, ...result } = user;
-        return {
-            message: '회원가입이 완료되었습니다.',
-            user: result,
-        };
     }
 
     async login(loginDto: LoginDto) {
