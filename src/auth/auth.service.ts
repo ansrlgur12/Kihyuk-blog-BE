@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, Inject } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Inject, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
@@ -157,6 +157,23 @@ export class AuthService {
         return {
             message: '로그아웃이 완료되었습니다.',
         }
+    }
+
+    async getUserById(userId: number) {
+        const user = await this.prisma.user.findUnique({
+            where: { user_id: userId },
+            select: {
+                user_id: true,
+                user_email: true,
+                user_nickname: true,
+            },
+        });
+
+        if (!user) {
+            throw new NotFoundException('사용자를 찾을 수 없습니다.');
+        }
+
+        return user;
     }
 
 }
