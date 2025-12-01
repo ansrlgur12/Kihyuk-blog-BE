@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { PostsModule } from './posts/posts.module';
 import { CommentsModule } from './comments/comments.module';
+import { UploadModule } from './upload/upload.module';
 import { ConfigModule } from '@nestjs/config';
 import { RedisModule } from './redis/redis.module';
 
@@ -21,6 +22,7 @@ import { RedisModule } from './redis/redis.module';
     UsersModule,
     PostsModule,
     CommentsModule,
+    UploadModule,
 
   ],
   controllers: [],

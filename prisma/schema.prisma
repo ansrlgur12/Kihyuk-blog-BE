@@ -50,3 +50,15 @@ model Comment {
   @@index([comment_author_id])
   @@index([comment_post_id])
 }
+
+model Attach {
+  att_idx        Int      @id @default(autoincrement())
+  att_target_type String? @db.VarChar(50)
+  att_target     String? @db.VarChar(50)
+  att_origin     String  @db.VarChar(255)
+  att_filepath   String  @db.VarChar(500)
+  att_ext        String? @db.VarChar(10)
+  att_is_image   String? @db.VarChar(1)
+
+  @@map("attaches")
+}
