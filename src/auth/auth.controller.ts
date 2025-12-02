@@ -11,6 +11,7 @@ import {
   Param,
   Req,
   Res,
+  BadRequestException,
 } from '@nestjs/common';
 import { REDIS_CLIENT } from '../redis/redis.module';
 import type { RedisClientType } from 'redis';
@@ -120,7 +121,10 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async refresh(@Req() req: any) {
     // 쿠키에서 refreshToken 추출
-    const refreshToken = req.cookies['refreshToken'];
+    const refreshToken = req.cookies?.refreshToken;
+    if (!refreshToken) {
+      throw new BadRequestException('쿠키 내에 RefreshToken이 없습니다.');
+    }
     return this.authService.refreshAccessToken(refreshToken);
   }
 
@@ -128,7 +132,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard) // JWT 검증
   async getMe(@CurrentUser() user: any) {
     // JWT에서 추출한 user 정보 반환
-    return this.authService.getUserById(user.id);
+    return this.authService.getUserById(user.userId);
   }
 
   @Post('logout')
