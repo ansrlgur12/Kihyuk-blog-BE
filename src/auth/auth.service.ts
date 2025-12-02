@@ -37,6 +37,7 @@ export class AuthService {
                     user_email: registerDto.user_email,
                     user_password: hashedPassword,
                     user_nickname: registerDto.user_nickname,
+                    user_status: registerDto.user_status || 'Y',
                 },
             })
 
@@ -67,6 +68,10 @@ export class AuthService {
             throw new UnauthorizedException('이메일 또는 비밀번호가 틀렸습니다.')
         }
 
+        // 활성 상태가 아닌 사용자는 로그인 불가
+        if (user.user_status !== 'Y') {
+            throw new UnauthorizedException('로그인할 수 없는 계정입니다.')
+        }
 
         const isPasswordVaild = await bcrypt.compare(
             loginDto.user_password,
