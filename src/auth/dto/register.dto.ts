@@ -18,4 +18,8 @@ export class RegisterDto {
     @IsOptional()
     @IsIn(['Y', 'N', 'T', 'H'])
     user_status?: string;
+
+    @IsString()
+    @IsOptional()
+    user_image?: string;
 }

@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Query, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Body, Query, UseGuards, Param } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { PostDto } from './dto/post.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -30,5 +30,10 @@ export class PostsController {
     async getPosts(@Query('page') page?: string) {
         const pageNumber = page ? parseInt(page, 10) : 1;
         return this.postsService.getPosts(pageNumber);
+    }
+
+    @Get(':post_id')
+    async getPostById(@Param('post_id') postId: string) {
+        return this.postsService.getPostById(postId);
     }
 }

@@ -38,6 +38,7 @@ export class AuthService {
                     user_password: hashedPassword,
                     user_nickname: registerDto.user_nickname,
                     user_status: registerDto.user_status || 'Y',
+                    user_image: registerDto.user_image || null,
                 },
             })
 
@@ -101,6 +102,7 @@ export class AuthService {
                 user_id: user.user_id,
                 user_email: user.user_email,
                 user_nickname: user.user_nickname,
+                user_image: user.user_image,
             },
         };
 
@@ -180,6 +182,7 @@ export class AuthService {
                 user_id: true,
                 user_email: true,
                 user_nickname: true,
+                user_image: true,
             },
         });
 

@@ -84,6 +84,7 @@ export class PostsService {
                             select: {
                                 user_id: true,
                                 user_nickname: true,
+                                user_image: true,
                             },
                         },
                     },
@@ -113,4 +114,38 @@ export class PostsService {
             throw new InternalServerErrorException('게시글 조회 실패');
         }
     }
+
+    async getPostById(postId: string) {
+        try {
+            const post = await this.prisma.post.findUnique({
+                where: {
+                    post_id: parseInt(postId, 10),
+                },
+                include: {
+                    author: {
+                        select: {
+                            user_id: true,
+                            user_nickname: true,
+                            user_image: true,
+                        },
+                    },
+                },
+            });
+
+            if (!post) {
+                throw new NotFoundException('게시글을 찾을 수 없습니다.');
+            }
+
+            return {
+                success: true,
+                message: '게시글 조회 완료',
+                post: post,
+            };
+
+        } catch (err) {
+            console.error('❌ 게시글 조회 실패:', err);
+            throw new InternalServerErrorException('게시글 조회 실패');
+        }
+    }
+
 }
