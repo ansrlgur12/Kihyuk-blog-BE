@@ -12,6 +12,7 @@ model User {
   user_email      String    @unique @db.VarChar(100)
   user_password   String    @db.VarChar(255)
   user_nickname   String    @db.VarChar(50)
+  user_image      String?   @db.VarChar(255)
   user_status     String    @default("Y") @db.VarChar(1)
   user_created_at DateTime  @default(now())
   user_updated_at DateTime  @updatedAt
