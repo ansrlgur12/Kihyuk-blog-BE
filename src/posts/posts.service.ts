@@ -35,6 +35,66 @@ export class PostsService {
         }
     }
 
+    async updatePost(postId: string, postDto: PostDto, userId: number) {
+        try {
+            const post = await this.prisma.post.update({
+                where: { post_id: parseInt(postId, 10) },
+                data: {
+                    post_title: postDto.post_title,
+                    post_content: postDto.post_content,
+                    post_thumbnail: postDto.post_thumbnail,
+                    post_status: postDto.post_status,
+                },
+                include: {
+                    author: {
+                        select: {
+                            user_id: true,
+                        },
+                    },
+                },
+            });
+
+            if (!post) {
+                throw new InternalServerErrorException('게시글 생성 실패');
+            }
+
+            return {
+                success: true,
+                message: '게시글 생성 완료',
+            };
+        } catch (err) {
+            console.error('❌ 게시글 생성 실패:', err);
+            throw new InternalServerErrorException('게시글 생성 실패');
+        }
+    }
+
+    async deletePost(postId: string, userId: number) {
+        try {
+            const post = await this.prisma.post.update({
+                where: {
+                    post_id: parseInt(postId, 10),
+                    post_author_id: userId,
+                },
+                data: {
+                    post_status: 'N',
+                },
+            });
+
+            if (!post) {
+                throw new InternalServerErrorException('게시글 삭제 실패');
+            }
+
+            return {
+                success: true,
+                message: '게시글 삭제 완료',
+            };
+        }
+        catch (err) {
+            console.error('❌ 게시글 삭제 실패:', err);
+            throw new InternalServerErrorException('게시글 삭제 실패');
+        }
+    }
+
     async tempSavePost(postDto: PostDto, userId: number) {
         try {
             const post = await this.prisma.post.create({
@@ -70,7 +130,7 @@ export class PostsService {
 
             // where 조건 동적 생성
             const whereCondition: any = {
-                post_status: 'Y', 
+                post_status: 'Y',
             };
 
             // userId가 있으면 해당 유저의 게시글만 조회
@@ -85,7 +145,65 @@ export class PostsService {
                     skip: skip,
                     take: pageSize,
                     orderBy: {
-                        post_created_at: 'desc', 
+                        post_created_at: 'desc',
+                    },
+                    include: {
+                        author: {
+                            select: {
+                                user_id: true,
+                                user_nickname: true,
+                                user_image: true,
+                            },
+                        },
+                    },
+                }),
+                this.prisma.post.count({
+                    where: whereCondition,
+                }),
+            ]);
+
+            const totalPages = Math.ceil(totalCount / pageSize);
+
+            return {
+                posts,
+                pagination: {
+                    currentPage: page,
+                    pageSize: pageSize,
+                    totalCount,
+                    totalPages,
+                    hasNextPage: page < totalPages,
+                    hasPrevPage: page > 1,
+                },
+            };
+        } catch (err) {
+            console.error('❌ 게시글 조회 실패:', err);
+            throw new InternalServerErrorException('게시글 조회 실패');
+        }
+    }
+
+    async getTempPosts(page: number = 1, userId?: number) {
+        try {
+            const pageSize = 8;
+            const skip = (page - 1) * pageSize;
+
+            // where 조건 동적 생성
+            const whereCondition: any = {
+                post_status: 'T',
+            };
+
+            // userId가 있으면 해당 유저의 게시글만 조회
+            if (userId) {
+                whereCondition.post_author_id = userId;
+            }
+
+            // 활성 상태인 게시글만 조회
+            const [posts, totalCount] = await Promise.all([
+                this.prisma.post.findMany({
+                    where: whereCondition,
+                    skip: skip,
+                    take: pageSize,
+                    orderBy: {
+                        post_created_at: 'desc',
                     },
                     include: {
                         author: {
