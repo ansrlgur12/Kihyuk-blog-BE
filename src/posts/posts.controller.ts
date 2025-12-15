@@ -43,10 +43,11 @@ export class PostsController {
     }
 
     @Get()
-    async getPosts(@Query('page') page?: string, @Query('user_id') user_id?: string) {
+    async getPosts(@Query('page') page?: string, @Query('user_id') user_id?: string, @Query('sort') sort?: string) {
         const pageNumber = page ? parseInt(page, 10) : 1;
         const userId = user_id ? parseInt(user_id, 10) : undefined;
-        return this.postsService.getPosts(pageNumber, userId);
+        const orderBy = sort ? sort : 'post_created_at';
+        return this.postsService.getPosts(pageNumber, userId, orderBy);
     }
 
     @Get(':post_id')

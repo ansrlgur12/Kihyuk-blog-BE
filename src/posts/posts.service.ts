@@ -123,7 +123,7 @@ export class PostsService {
     }
 
 
-    async getPosts(page: number = 1, userId?: number) {
+    async getPosts(page: number = 1, userId?: number, orderBy?: string) {
         try {
             const pageSize = 8;
             const skip = (page - 1) * pageSize;
@@ -133,10 +133,14 @@ export class PostsService {
                 post_status: 'Y',
             };
 
+            console.log(orderBy);
+
+
             // userId가 있으면 해당 유저의 게시글만 조회
             if (userId) {
                 whereCondition.post_author_id = userId;
             }
+
 
             // 활성 상태인 게시글만 조회
             const [posts, totalCount] = await Promise.all([
@@ -145,7 +149,7 @@ export class PostsService {
                     skip: skip,
                     take: pageSize,
                     orderBy: {
-                        post_created_at: 'desc',
+                        [orderBy as keyof typeof this.prisma.post.fields]: 'desc',
                     },
                     include: {
                         author: {
@@ -260,10 +264,27 @@ export class PostsService {
                 throw new NotFoundException('게시글을 찾을 수 없습니다.');
             }
 
+            // 조회수 증가
+            const currentView = (post as any).post_view || 0;
+            await this.prisma.post.update({
+                where: {
+                    post_id: parseInt(postId, 10),
+                },
+                data: {
+                    post_view: currentView + 1,
+                } as any,
+            });
+
+            // 증가된 조회수 반영
+            const updatedPost = {
+                ...post,
+                post_view: currentView + 1,
+            };
+
             return {
                 success: true,
                 message: '게시글 조회 완료',
-                post: post,
+                post: updatedPost,
             };
 
         } catch (err) {
