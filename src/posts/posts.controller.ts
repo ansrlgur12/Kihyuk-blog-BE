@@ -27,9 +27,10 @@ export class PostsController {
     }
 
     @Get()
-    async getPosts(@Query('page') page?: string) {
+    async getPosts(@Query('page') page?: string, @Query('user_id') user_id?: string) {
         const pageNumber = page ? parseInt(page, 10) : 1;
-        return this.postsService.getPosts(pageNumber);
+        const userId = user_id ? parseInt(user_id, 10) : undefined;
+        return this.postsService.getPosts(pageNumber, userId);
     }
 
     @Get(':post_id')

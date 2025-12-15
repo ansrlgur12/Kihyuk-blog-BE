@@ -63,21 +63,29 @@ export class PostsService {
     }
 
 
-    async getPosts(page: number = 1) {
+    async getPosts(page: number = 1, userId?: number) {
         try {
             const pageSize = 8;
             const skip = (page - 1) * pageSize;
 
+            // where 조건 동적 생성
+            const whereCondition: any = {
+                post_status: 'Y', 
+            };
+
+            // userId가 있으면 해당 유저의 게시글만 조회
+            if (userId) {
+                whereCondition.post_author_id = userId;
+            }
+
             // 활성 상태인 게시글만 조회
             const [posts, totalCount] = await Promise.all([
                 this.prisma.post.findMany({
-                    where: {
-                        post_status: 'Y', // 활성 상태만
-                    },
+                    where: whereCondition,
                     skip: skip,
                     take: pageSize,
                     orderBy: {
-                        post_created_at: 'desc', // 최신순
+                        post_created_at: 'desc', 
                     },
                     include: {
                         author: {
@@ -90,9 +98,7 @@ export class PostsService {
                     },
                 }),
                 this.prisma.post.count({
-                    where: {
-                        post_status: 'Y',
-                    },
+                    where: whereCondition,
                 }),
             ]);
 
