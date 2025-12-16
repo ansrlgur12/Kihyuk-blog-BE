@@ -123,17 +123,15 @@ export class PostsService {
     }
 
 
-    async getPosts(page: number = 1, userId?: number, orderBy?: string) {
+    async getPosts(page: number = 1, userId?: number, orderBy?: string, pageSize?: string) {
         try {
-            const pageSize = 8;
-            const skip = (page - 1) * pageSize;
+            const pageSizeNumber = pageSize ? parseInt(pageSize, 10) : 8;
+            const skip = (page - 1) * pageSizeNumber;
 
             // where 조건 동적 생성
             const whereCondition: any = {
                 post_status: 'Y',
             };
-
-            console.log(orderBy);
 
 
             // userId가 있으면 해당 유저의 게시글만 조회
@@ -147,7 +145,7 @@ export class PostsService {
                 this.prisma.post.findMany({
                     where: whereCondition,
                     skip: skip,
-                    take: pageSize,
+                    take: pageSizeNumber,
                     orderBy: {
                         [orderBy as keyof typeof this.prisma.post.fields]: 'desc',
                     },
@@ -166,7 +164,7 @@ export class PostsService {
                 }),
             ]);
 
-            const totalPages = Math.ceil(totalCount / pageSize);
+            const totalPages = Math.ceil(totalCount / pageSizeNumber);
 
             return {
                 posts,
