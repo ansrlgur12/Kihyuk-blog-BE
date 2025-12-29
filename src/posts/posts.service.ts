@@ -133,12 +133,23 @@ export class PostsService {
                 post_status: 'Y',
             };
 
-
             // userId가 있으면 해당 유저의 게시글만 조회
             if (userId) {
                 whereCondition.post_author_id = userId;
             }
 
+            // 유효한 정렬 필드 목록 정의
+            const validOrderByFields = [
+                'post_created_at',
+                'post_updated_at',
+                'post_view',
+                'post_title',
+            ];
+
+            // orderBy 파라미터 검증 및 기본값 설정
+            const safeOrderBy = orderBy && validOrderByFields.includes(orderBy)
+                ? orderBy
+                : 'post_created_at';  // 기본값: 최신순
 
             // 활성 상태인 게시글만 조회
             const [posts, totalCount] = await Promise.all([
@@ -147,7 +158,7 @@ export class PostsService {
                     skip: skip,
                     take: pageSizeNumber,
                     orderBy: {
-                        [orderBy as keyof typeof this.prisma.post.fields]: 'desc',
+                        [safeOrderBy]: 'desc',
                     },
                     include: {
                         author: {
@@ -243,9 +254,14 @@ export class PostsService {
 
     async getPostById(postId: string) {
         try {
-            const post = await this.prisma.post.findUnique({
+            const post = await this.prisma.post.update({
                 where: {
                     post_id: parseInt(postId, 10),
+                },
+                data: {
+                    post_view: {
+                        increment: 1,
+                    },
                 },
                 include: {
                     author: {
@@ -262,27 +278,10 @@ export class PostsService {
                 throw new NotFoundException('게시글을 찾을 수 없습니다.');
             }
 
-            // 조회수 증가
-            const currentView = (post as any).post_view || 0;
-            await this.prisma.post.update({
-                where: {
-                    post_id: parseInt(postId, 10),
-                },
-                data: {
-                    post_view: currentView + 1,
-                } as any,
-            });
-
-            // 증가된 조회수 반영
-            const updatedPost = {
-                ...post,
-                post_view: currentView + 1,
-            };
-
             return {
                 success: true,
                 message: '게시글 조회 완료',
-                post: updatedPost,
+                post: post,
             };
 
         } catch (err) {
