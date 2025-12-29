@@ -12,6 +12,7 @@ import {
   Req,
   Res,
   BadRequestException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { REDIS_CLIENT } from '../redis/redis.module';
 import type { RedisClientType } from 'redis';
@@ -123,7 +124,8 @@ export class AuthController {
     // 쿠키에서 refreshToken 추출
     const refreshToken = req.cookies?.refreshToken;
     if (!refreshToken) {
-      throw new BadRequestException('쿠키 내에 RefreshToken이 없습니다.');
+      // refreshToken이 없으면 401 반환 (인증되지 않은 상태)
+      throw new UnauthorizedException('쿠키 내에 RefreshToken이 없습니다.');
     }
     return this.authService.refreshAccessToken(refreshToken);
   }

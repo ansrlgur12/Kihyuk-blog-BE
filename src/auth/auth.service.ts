@@ -93,7 +93,7 @@ export class AuthService {
             await this.redisClient.setEx(redisKey, 604800, hashedRefreshToken);
 
         } catch (error) {
-            console.error('❌ Redis 저장 실패:', error);
+            console.error('Redis 저장 실패:', error);
         }
 
         return {
